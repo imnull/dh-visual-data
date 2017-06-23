@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title></title>
+<script type="text/javascript" src="./lib/echarts.simple.min.js"></script>
+</head>
+<body>
+
+<div id="main" style="width: 600px;height:400px;"></div>
+
+<script type="text/javascript">
+
+let MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let DATA = [
+	{ groupId: 'A', name: '衬衫', sold: 5.2, month: 'Jan', monthIndex: 0 },
+	{ groupId: 'B', name: '衬衫', sold: 4.5, month: 'Feb', monthIndex: 1 },
+	{ groupId: 'A', name: '衬衫', sold: 5.8, month: 'Mar', monthIndex: 2 },
+	{ groupId: 'D', name: '衬衫', sold: 7.6, month: 'Apr', monthIndex: 3 },
+	{ groupId: 'A', name: '衬衫', sold: 3.2, month: 'May', monthIndex: 4 },
+	{ groupId: 'B', name: '衬衫', sold: 1.7, month: 'Jun', monthIndex: 5 },
+	{ groupId: 'A', name: '衬衫', sold: 6.3, month: 'Jul', monthIndex: 6 },
+	{ groupId: 'A', name: '衬衫', sold: 7.1, month: 'Aug', monthIndex: 7 },
+	{ groupId: 'B', name: '衬衫', sold: 5.1, month: 'Sep', monthIndex: 8 },
+	{ groupId: 'A', name: '衬衫', sold: 9.2, month: 'Oct', monthIndex: 9 },
+	{ groupId: 'C', name: '衬衫', sold: 7.3, month: 'Nov', monthIndex: 10 },
+	{ groupId: 'C', name: '衬衫', sold: 6.7, month: 'Dec', monthIndex: 11 },
+
+	{ groupId: 'C', name: '羊毛衫', sold: 13.1, month: 'Jan', monthIndex: 0 },
+	{ groupId: 'B', name: '羊毛衫', sold: 19.3, month: 'Feb', monthIndex: 1 },
+	{ groupId: 'A', name: '羊毛衫', sold: 7, month: 'Mar', monthIndex: 2 },
+	{ groupId: 'D', name: '羊毛衫', sold: 8.9, month: 'Apr', monthIndex: 3 },
+	{ groupId: 'B', name: '羊毛衫', sold: 5.4, month: 'May', monthIndex: 4 },
+	{ groupId: 'A', name: '羊毛衫', sold: 11.1, month: 'Jun', monthIndex: 5 },
+	{ groupId: 'C', name: '羊毛衫', sold: 13.3, month: 'Jul', monthIndex: 6 },
+	{ groupId: 'C', name: '羊毛衫', sold: 5.9, month: 'Aug', monthIndex: 7 },
+	{ groupId: 'A', name: '羊毛衫', sold: 17.1, month: 'Sep', monthIndex: 8 },
+	{ groupId: 'B', name: '羊毛衫', sold: 19, month: 'Oct', monthIndex: 9 },
+	{ groupId: 'A', name: '羊毛衫', sold: 8.9, month: 'Nov', monthIndex: 10 },
+	{ groupId: 'B', name: '羊毛衫', sold: 12, month: 'Dec', monthIndex: 11 },
+
+	{ groupId: 'A', name: '裤子', sold: 8.9, month: 'Jan', monthIndex: 0 },
+	{ groupId: 'B', name: '裤子', sold: 12.3, month: 'Feb', monthIndex: 1 },
+	{ groupId: 'A', name: '裤子', sold: 9.7, month: 'Mar', monthIndex: 2 },
+	{ groupId: 'C', name: '裤子', sold: 19.2, month: 'Apr', monthIndex: 3 },
+	{ groupId: 'A', name: '裤子', sold: 7.7, month: 'May', monthIndex: 4 },
+	{ groupId: 'C', name: '裤子', sold: 3.9, month: 'Jun', monthIndex: 5 },
+	{ groupId: 'A', name: '裤子', sold: 6.5, month: 'Jul', monthIndex: 6 },
+	{ groupId: 'C', name: '裤子', sold: 9.2, month: 'Aug', monthIndex: 7 },
+	{ groupId: 'D', name: '裤子', sold: 11.6, month: 'Sep', monthIndex: 8 },
+	{ groupId: 'B', name: '裤子', sold: 6.8, month: 'Oct', monthIndex: 9 },
+	{ groupId: 'A', name: '裤子', sold: 11.7, month: 'Nov', monthIndex: 10 },
+	{ groupId: 'A', name: '裤子', sold: 19, month: 'Dec', monthIndex: 11 },
+];
+
+function getAllColumns(data){
+	let row = data[0];
+	let r = {};
+	Object.keys(row).forEach((key) => {
+		if(!(key in r)) r[key] = [];
+		data.forEach((dataRow) => {
+			r[key].indexOf(dataRow[key]) < 0 && r[key].push(dataRow[key])
+		});
+		r[key].sort();
+	});
+	Object.keys(r).forEach((key) => {
+		if(typeof(r[key][0]) == 'number'){
+			r[key].sort((a, b) => a - b);
+		} else if(key === 'month'){
+			r[key].sort((a, b) => (MONTH.indexOf(a) - MONTH.indexOf(b)));
+		} else {
+			r[key].sort();
+		}
+	});
+	return r;
+}
+
+let dataColumns = getAllColumns(DATA);
+var myChart = null;
+
+function dataSum(colKey, valKey, data){
+	let cols = dataColumns[colKey];
+	let d = [];
+	cols.forEach((col) => {
+		let sum = DATA
+		.filter((a) => a[colKey] === col)
+		.map((a) => a[valKey])
+		.reduce((prev, cur, index, arr) => {
+			return prev + cur;
+		})
+		;
+		d.push(sum);
+	});
+	return d;
+}
+
+function dataSum2(colKeys, valKey, data){
+	let sum = DATA
+		.filter((a) => {
+			for(let p in colKeys){
+				if(a[colKey] != colKeys[p]){
+					return false;
+				}
+			}
+			return true;
+		})
+		.map((a) => a[valKey])
+		.reduce((prev, cur, index, arr) => {
+			return prev + cur;
+		})
+		;
+}
+
+/*
+ * Key-value pair { key, val }
+ */
+function dataQuery(kvPairs, data){
+	return data.filter((row) => {
+		return kvPairs.every((pair) => row[pair.key] === pair.val);
+	});
+}
+// function dataQuery(pair, data){
+// 	return data.filter((row) => row[pair.key] === pair.val);
+// }
+
+function cross2Array(arr){
+	let r = [];
+	if(!arr.length) return r;
+	else if(arr.length == 1) return arr[0];
+	else {
+		do{
+			arr[0].forEach((_a) => {
+				arr[1].forEach((_b) => {
+					if(_a instanceof Array){
+						r.push([..._a, _b]);
+					} else {
+						r.push([_a, _b]);
+					}
+				});
+			});
+			arr.shift();
+			arr[0] = r;
+			r = [];
+		} while(arr.length > 1);
+		
+	}
+	r = arr[0];
+	arr = null;
+	return r;
+}
+
+
+function generateQueryPairs(){
+	let keys = [...arguments], data = keys.pop();
+	let cols = keys
+		.map((key) => [key, dataColumns[key]])
+		.map((col) => col[1].map((c) => ({ key: col[0], val: c })))
+		;
+	let q = cross2Array(cols);
+	return q;
+}
+
+let dq = dataQuery([{ key: 'month', val: 'Jan' }], DATA);
+console.log(dq)
+
+function createChartData(dataKey, valueKey, data){
+	return {
+		key: dataKey,
+		columns: dataColumns[dataKey],
+		series: [{
+			name: dataKey,
+			type: 'bar',
+			data: dataSum(dataKey, valueKey, data)
+		}]
+	}
+}
+
+function createChartDatas(dataKeys, data){
+	let query = generateQueryPairs(...dataKeys, data);
+	let seriesData = query.map((q) => dataQuery(q, data));
+	let r = {
+		keys: dataKeys,
+		columns: dataColumns[dataKeys[0]],
+		series: seriesData
+	};
+	console.log(r)
+	return r;
+}
+
+
+function createChart(dataKeys, data){
+	var option = {
+        title: {
+            text: 'ECharts 入门示例'
+        },
+        tooltip: {},
+        legend: {
+            data:[]
+        },
+        xAxis: {},
+        yAxis: {},
+        series: []
+    };
+
+    let dataPrepare = createChartDatas(dataKeys, data);
+    // console.log(dataPrepare)
+
+    option.legend.data = dataPrepare.keys;
+    option.xAxis.data = dataPrepare.columns;
+    option.series = dataPrepare.series;
+
+    console.log(option)
+
+    if(myChart) myChart.dispose();
+    // myChart = echarts.init(document.getElementById('main'));
+    // myChart.setOption(option);
+}
+
+createChart(['month', 'name'], DATA)
+
+</script>
+
+</body>
+</html>
